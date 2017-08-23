@@ -1,0 +1,84 @@
+#!/usr/bin/env node
+
+var path = require("path");
+var fs = require("fs");
+var changeCase = require("change-case");
+var country = require("countrynames");
+
+var nodeModules = path.join(process.env.NODE_PATH, "node_modules");
+
+var root = path.join(nodeModules, "flag-icon-css", "flags", "4x3");
+
+var flags = fs.readdirSync(root);
+
+var codes = flags.map(filename => path.basename(filename, ".svg"));
+
+var file = `module Flag exposing (..)
+
+{-| HTML for tiny, inline flags.
+
+    Html.div [] [ Html.text "That will cost $50.00 ", Flag.us ]
+
+# Country Codes
+@docs ${codes.map(elmFunctionName).join(", ")}.}
+
+-}
+
+import Html exposing (Html)
+import Html.Attributes
+
+
+icon : String -> String -> Html msg
+icon countryCode image =
+    Html.div
+        [ Html.Attributes.style
+            [ ( "background-size", "contain" )
+            , ( "background-position", "50%" )
+            , ( "background-repeat", "no-repeat" )
+            , ( "background-image", "url('data:image/svg+xml;utf8," ++ image ++ "')" )
+            , ( "position", "relative" )
+            , ( "display", "inline-block" )
+            , ( "width", "1.33333333em" )
+            , ( "line-height", "1em" )
+            , ( "color", "transparent" )
+            ]
+        ]
+        [ Html.text countryCode ]
+
+${codes.map(countryCodeCode).join("\n")}
+`;
+
+fs.writeFileSync(path.join("Flag.elm"), file);
+
+
+function countryCodeCode(code) {
+  var assignment = elmFunctionName(code);
+
+  return `
+{-| The flag for ${countryName(code)} (${code}).
+-}
+${assignment} : Html msg
+${assignment} =
+    icon "${code}" """${buildSvg(code)}"""
+`;
+}
+
+function countryName(code) {
+  return changeCase.title(country.getName(code.slice(0, 2)));
+}
+
+function buildSvg(code) {
+  var filename = path.join(root, code + ".svg");
+  return fs.readFileSync(filename, "utf8").replace(/[\r\n]/g, "");
+}
+
+function elmFunctionName(code) {
+  var elmKeywords = ["as", "in"];
+  var assignment = changeCase.camel(code);
+
+  if (elmKeywords.indexOf(assignment) > -1) {
+    return assignment + "_";
+  } else {
+    return assignment;
+  }
+}

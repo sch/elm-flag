@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# script/publish: Build and upload to github pages
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+elm-make examples/Main.elm --output build/main.js
+node_modules/.bin/google-closure-compiler-js --compilationLevel ADVANCED build/main.js > build/main.min.js
+rm build/main.js
+
+TEMPORARY_DIRECTORY=`mktemp -d`
+cp -r build/. $TEMPORARY_DIRECTORY
+cd $TEMPORARY_DIRECTORY
+
+git init
+git add .
+git commit -m "Build commit"
+git remote add origin git@github.com:sch/elm-flag.git
+git push origin HEAD:gh-pages --force

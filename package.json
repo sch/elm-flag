@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "change-case": "^3.0.1",
+    "countrynames": "^0.1.1",
+    "elm-format": "exp",
+    "flag-icon-css": "^2.8.0",
+    "google-closure-compiler-js": "^20170806.0.0",
+    "ramda": "^0.24.1"
+  },
+  "scripts": {
+    "build": "NODE_PATH=. script/build"
+  }
+}
