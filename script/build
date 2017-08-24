@@ -13,15 +13,19 @@ var flags = fs.readdirSync(root);
 
 var codes = flags.map(filename => path.basename(filename, ".svg"));
 
-var file = `module Flag exposing (..)
+var exposedModules = codes.map(elmFunctionName).join(", ")
 
-{-| HTML for tiny, inline flags.
+var file = `module Flag exposing (${exposedModules})
+
+{-| HTML for tiny, inline flags. The names reflect the two-letter country code
+under [ISO 3166-1 alpha-2][country-code]. Here's an example:
 
     Html.div [] [ Html.text "That will cost $50.00 ", Flag.us ]
 
 # Country Codes
-@docs ${codes.map(elmFunctionName).join(", ")}.}
+@docs ${exposedModules}
 
+[country-code]: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
 -}
 
 import Html exposing (Html)
@@ -48,14 +52,14 @@ icon countryCode image =
 ${codes.map(countryCodeCode).join("\n")}
 `;
 
-fs.writeFileSync(path.join("Flag.elm"), file);
+fs.writeFileSync(path.join("src", "Flag.elm"), file);
 
 
 function countryCodeCode(code) {
   var assignment = elmFunctionName(code);
 
   return `
-{-| The flag for ${countryName(code)} (${code}).
+{-| The flag for ${countryName(code)}
 -}
 ${assignment} : Html msg
 ${assignment} =
